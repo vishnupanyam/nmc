@@ -1,5 +1,5 @@
 
-var width=800, height=400;
+var width=100, height=100;
 var ctx;
 var canvas;
 
@@ -8,8 +8,22 @@ var canvas;
 function init() {
 
     canvas = document.getElementById("game-canvas");
-    canvas.width = width;
+
+    var canvasRatio = canvas.height / canvas.width;
+    var windowRatio = window.innerHeight / window.innerWidth;
+        
+
+    if (windowRatio < canvasRatio) {
+        height = window.innerHeight;
+        width = height / canvasRatio;
+    } else {
+        width = window.innerWidth;
+        height = width * canvasRatio;
+    }
+
+    canvas.width  = width;
     canvas.height = height;
+
     ctx = canvas.getContext("2d");
 
     ctx.moveTo(0, 0);
@@ -33,4 +47,4 @@ init();
 
 canvas.addEventListener('click', event => {
     console.log('click at x:'+ event.x +' y:'+ event.y );
-  });
+});
