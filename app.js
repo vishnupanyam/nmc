@@ -8,7 +8,7 @@ const ASTEROID_SPEED = 20;
 const GAME_STOP = 0;
 const GAME_RUNNING = 1;
 
-var game = {maxAsteroids:5, status:GAME_RUNNING };
+var game = {};
 
 var score = {};
 
@@ -23,6 +23,7 @@ function init() {
 	// start & score
 	modalEl = document.getElementById( 'modalEl' );
 	scoreEl = document.getElementById( 'scoreEl' );
+	levelEl = document.getElementById( 'levelEl' );
 	scoreBigEl = document.getElementById( 'scoreBigEl' );
 	score = { points: 0 };
 	modalEl.style.display = 'none';    
@@ -54,6 +55,7 @@ function init() {
     cities.push(new City({x:width/2,y:height}));
 
     game.status = GAME_RUNNING;
+    game.level = 1;
 }
 
 // game loop
@@ -66,7 +68,7 @@ function loop() {
 
 function step(dt) {
 
-    if (asteroids.length < game.maxAsteroids) {
+    if (asteroids.length < game.level*5) {
         // create new asteroid
         var asteroid = new Asteroid( {x: Math.random()*width, y:height*1/10}, {x:width/2, y:height}, ASTEROID_SPEED);
 
@@ -93,7 +95,7 @@ function step(dt) {
             if ( explosion.collide( asteroid)) {
                 asteroid.live = 0;
 
-                var newScore = 25;
+                var newScore = 25 + (explosion.score!=null?explosion.score:0);
 
                 explosions.push(new Explosion({x:asteroid.x,y:asteroid.y}, newScore));
                 score.points += newScore;
@@ -125,7 +127,12 @@ function step(dt) {
     cities = cities.filter(city => city.live > 0);
 
 	if(cities.length==0)
-		gameOver();    
+        gameOver();    
+        
+    if (score.points > game.level*1000) {
+        console.log('level up');
+        game.level += 1;
+    }
 
 }
 
@@ -159,6 +166,7 @@ function draw(ctx) {
 
 
     scoreEl.innerHTML = score.points;
+    levelEl.innerHTML = game.level;
 
 }
 
