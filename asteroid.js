@@ -1,8 +1,9 @@
 class Asteroid {
 
-    constructor(pos,target) {
+    constructor(pos,target, speed) {
 
         this.radius = 5;
+        this.speed = speed;
 
         this.originX = pos.x;
         this.originY = pos.y;
@@ -32,8 +33,8 @@ class Asteroid {
         } else {
             var angle = -Math.atan2(this.originX -this.targetX, this.originY - this.targetY) - Math.PI/2;
 
-            this.x += dt*10 * Math.cos(angle);
-            this.y += dt*10 * Math.sin(angle);
+            this.x += dt*this.speed * Math.cos(angle);
+            this.y += dt*this.speed * Math.sin(angle);
         }
 
         this.distanceToTarget = distanceToTarget;
@@ -49,4 +50,15 @@ class Asteroid {
         ctx.stroke();
             
     }
+
+    collide(other) {
+        var dx = other.x - this.x;
+        var dy = other.y - this.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var minDist = this.radius + other.radius;
+        if (dist < minDist)
+            return true;
+        return false;
+
+    }    
 }

@@ -3,8 +3,15 @@ var width, height;
 var ctx;
 var canvas;
 
+const ASTEROID_SPEED = 20;
 
-var game = {maxAsteroids:3 };
+const GAME_STOP = 0;
+const GAME_RUNNING = 1;
+
+var game = {maxAsteroids:5, status:GAME_RUNNING };
+
+var score = {};
+
 var cities = [];
 var asteroids = [];
 var missiles = [];
@@ -12,6 +19,13 @@ var explosions = [];
 
 
 function init() {
+
+	// start & score
+	modalEl = document.getElementById( 'modalEl' );
+	scoreEl = document.getElementById( 'scoreEl' );
+	scoreBigEl = document.getElementById( 'scoreBigEl' );
+	score = { points: 0 };
+	modalEl.style.display = 'none';    
 
     canvas = document.getElementById("game-canvas");
 
@@ -31,13 +45,21 @@ function init() {
 
     ctx = canvas.getContext("2d");
 
+
+	cities = [];
+	missiles = [];
+	asteroids = [];
+    explosions = [];
+        
     cities.push(new City({x:width/2,y:height}));
 
+    game.status = GAME_RUNNING;
 }
 
 // game loop
 function loop() {
-    step(60/1000);    
+	if (game.status == GAME_RUNNING) 
+        step(60/1000);    
     draw(ctx);
     window.requestAnimationFrame(loop);
 }
@@ -46,7 +68,7 @@ function step(dt) {
 
     if (asteroids.length < game.maxAsteroids) {
         // create new asteroid
-        var asteroid = new Asteroid( {x: Math.random()*width, y:height*1/10}, {x:width/2, y:height});
+        var asteroid = new Asteroid( {x: Math.random()*width, y:height*1/10}, {x:width/2, y:height}, ASTEROID_SPEED);
 
         // add to asteroid stack
         asteroids.push(asteroid);
@@ -70,15 +92,40 @@ function step(dt) {
         explosions.forEach(explosion => {
             if ( explosion.collide( asteroid)) {
                 asteroid.live = 0;
-                explosions.push(new Explosion({x:asteroid.x,y:asteroid.y}));
+
+                var newScore = 25;
+
+                explosions.push(new Explosion({x:asteroid.x,y:asteroid.y}, newScore));
+                score.points += newScore;
             }
         });
     });
+
+
+	// cities-asteroid interaction
+	asteroids.forEach(asteroid => {
+		cities.forEach( city => {
+			if (asteroid.collide(city)) {
+				asteroid.live = 0;
+				explosions.push(new Explosion({x:asteroid.x,y:asteroid.y}));
+
+				city.damage(100);
+
+				if (city.live < 1)
+					explosions.push(new Explosion({x:city.x,y:city.y}));
+
+			}
+		});
+	});    
 
     // clear dead objects
     asteroids = asteroids.filter(asteroid => asteroid.live > 0);
     missiles = missiles.filter(missile => missile.live > 0);
     explosions = explosions.filter(explosion => explosion.live > 0);
+    cities = cities.filter(city => city.live > 0);
+
+	if(cities.length==0)
+		gameOver();    
 
 }
 
@@ -94,7 +141,7 @@ function draw(ctx) {
     ctx.textAlign = 'right';
     ctx.font = '30px Arial';
     ctx.fillStyle = 'white';
-    ctx.fillText('Missiles: '+ missiles.length, canvas.width - 100, 40);
+    //ctx.fillText('Missiles: '+ missiles.length, canvas.width - 100, 40);
     ctx.stroke();
 
 
@@ -110,11 +157,22 @@ function draw(ctx) {
     // draw explosions
     explosions.forEach(explosion => { explosion.draw(ctx); });
 
+
+    scoreEl.innerHTML = score.points;
+
 }
 
 
 init();
 loop();
+
+
+
+function gameOver() {
+	game.status = GAME_STOP;
+	scoreBigEl.innerHTML = score.points;
+	modalEl.style.display = 'flex';
+}
 
 canvas.addEventListener('click', function(e) {
 
@@ -129,4 +187,8 @@ canvas.addEventListener('click', function(e) {
     // add to missile stack
     missiles.push(missile);
 
+});
+
+gameBtn.addEventListener('click', () => {
+	init();
 });
