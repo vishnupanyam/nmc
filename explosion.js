@@ -1,8 +1,21 @@
 class Explosion {
 
-    constructor(pos, score) {
+    constructor(owner, pos, score) {
 
+        if (score == null) score = 0;
+
+        this.value = 50;
         this.radius = 1;
+        this.owner = owner;
+
+        if (owner == PLAYER)
+            this.color = 'blue';
+        if (owner == OTHER)
+            this.color = 'red';
+        if (owner == CITY) {
+            this.value = 100;
+            this.color = 'lightgreen';
+        }
 
 
         this.x = pos.x;
@@ -18,9 +31,9 @@ class Explosion {
         this.live -= dt*100;
 
         if (this.live > Explosion.LIVE/2)
-            this.radius = 0 + 50*(Explosion.LIVE - this.live)/Explosion.LIVE;
+            this.radius = 0 + this.value*(Explosion.LIVE - this.live)/Explosion.LIVE;
         else
-            this.radius = 50 - 50*(Explosion.LIVE - this.live)/Explosion.LIVE;
+            this.radius = this.value - this.value*(Explosion.LIVE - this.live)/Explosion.LIVE;
 
         if (this.radius < 1)
             this.radius = 0;
@@ -30,7 +43,7 @@ class Explosion {
     draw(ctx) {
 
         ctx.beginPath();
-        ctx.strokeStyle = 'yellow';
+        ctx.strokeStyle = this.color;
         ctx.fillStyle = 'black';
         ctx.arc(this.x,this.y,this.radius,2*Math.PI,false);
         ctx.fill();

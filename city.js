@@ -1,13 +1,15 @@
 class City {
 
-    constructor(pos) {
+    constructor(pos,cannon) {
 
         this.color = 'green';
-        this.radius = 20;
+
+        this.radius = (cannon == true?30:20);
 
         this.x = pos.x;
         this.y = pos.y;
 
+        this.cannon = cannon;
 		this.live = City.LIVE;        
     }
 
@@ -16,9 +18,17 @@ class City {
         ctx.beginPath()
         ctx.strokeStyle = this.color;
         ctx.fillStyle = this.color;
-        ctx.arc(this.x,this.y, this.radius, 2 * Math.PI, false);
+        ctx.rect(this.x - this.radius ,this.y - this.radius, this.radius*2, this.radius*2 );
         ctx.fill();
         ctx.stroke();
+
+        // ctx.beginPath()
+        // ctx.strokeStyle = this.color;
+        // ctx.fillStyle = 'white';
+        // ctx.arc(this.x,this.y,this.radius,2*Math.PI,false);
+        // ctx.fill();
+        // ctx.stroke();
+        
     }
 
 	damage(value) {
