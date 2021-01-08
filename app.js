@@ -5,6 +5,7 @@ var canvas;
 
 
 var game = {maxAsteroids:3 };
+var cities = [];
 var asteroids = [];
 var missiles = [];
 var explosions = [];
@@ -29,6 +30,8 @@ function init() {
     canvas.height = height;
 
     ctx = canvas.getContext("2d");
+
+    cities.push(new City({x:width/2,y:height}));
 
 }
 
@@ -86,15 +89,6 @@ function draw(ctx) {
     ctx.fillRect(0,0,width,height);
     ctx.stroke();
 
-
-    // draw city
-    ctx.beginPath()
-    ctx.strokeStyle = 'green';
-    ctx.fillStyle = 'lightgreen';
-    ctx.arc(canvas.width/2,canvas.height,20, 2 * Math.PI, false);
-    ctx.fill();
-    ctx.stroke();
-
     // canvas text
     ctx.beginPath()
     ctx.textAlign = 'right';
@@ -102,6 +96,10 @@ function draw(ctx) {
     ctx.fillStyle = 'white';
     ctx.fillText('Missiles: '+ missiles.length, canvas.width - 100, 40);
     ctx.stroke();
+
+
+    // draw cities
+    cities.forEach(city => { city.draw(ctx); });
 
     // draw asteroids
     asteroids.forEach(asteroid => { asteroid.draw(ctx); });
