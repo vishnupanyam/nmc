@@ -3,13 +3,19 @@ var width, height;
 var ctx;
 var canvas;
 
-const ASTEROID_SPEED = 20;
 
 const GAME_STOP = 0;
 const GAME_RUNNING = 1;
+var game = {
+    status:GAME_RUNNING,
+    level:1
+};
 
-var game = {};
-
+var conf = {
+    ASTEROID_SPEED: 20,
+    MISSILE_SPEED: 100,
+    SCORE_BASE:25
+};
 var score = {};
 
 var cities = [];
@@ -70,11 +76,12 @@ function step(dt) {
 
     if (asteroids.length < game.level*5) {
         // create new asteroid
-        var asteroid = new Asteroid( {x: Math.random()*width, y:height*1/10}, {x:width/2, y:height}, ASTEROID_SPEED);
+        var origin = {x: Math.random()*width, y:height*1/10};
+        var dest = {x:width/2 + (Math.random()-0.5)* width/2, y:height};
+        var asteroid = new Asteroid( origin, dest, conf.ASTEROID_SPEED);
 
         // add to asteroid stack
         asteroids.push(asteroid);
-
     }
     
 
@@ -95,7 +102,7 @@ function step(dt) {
             if ( explosion.collide( asteroid)) {
                 asteroid.live = 0;
 
-                var newScore = 25 + (explosion.score!=null?explosion.score:0);
+                var newScore = conf.SCORE_BASE + (explosion.score!=null?explosion.score:0);
 
                 explosions.push(new Explosion({x:asteroid.x,y:asteroid.y}, newScore));
                 score.points += newScore;
@@ -190,7 +197,7 @@ canvas.addEventListener('click', function(e) {
     console.log('player point at x:'+ playerDestX +' y:'+ playerDestY);
 
     // create missile
-    var missile = new Missile( {x:width/2, y:height}, {x:playerDestX, y:playerDestY});
+    var missile = new Missile( {x:width/2, y:height}, {x:playerDestX, y:playerDestY}, conf.MISSILE_SPEED);
 
     // add to missile stack
     missiles.push(missile);

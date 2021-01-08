@@ -1,8 +1,10 @@
+
 class Missile {
 
-    constructor(pos,target) {
+    constructor(pos,target, speed) {
 
         this.radius = 5;
+        this.speed = speed;
 
         this.originX = pos.x;
         this.originY = pos.y;
@@ -13,7 +15,7 @@ class Missile {
         this.targetX = target.x;
         this.targetY = target.y;
 
-        this.live = 100;
+        this.live = Missile.LIVE;
     }
 
 
@@ -32,8 +34,8 @@ class Missile {
         } else {
             var angle = -Math.atan2(this.originX -this.targetX, this.originY - this.targetY) - Math.PI/2;
 
-            this.x += dt*100 * Math.cos(angle);
-            this.y += dt*100 * Math.sin(angle);
+            this.x += dt*this.speed * Math.cos(angle);
+            this.y += dt*this.speed * Math.sin(angle);
         }
 
         this.distanceToTarget = distanceToTarget;
@@ -60,3 +62,5 @@ class Missile {
             
     }
 }
+
+Missile.LIVE = 100;

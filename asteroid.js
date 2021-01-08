@@ -17,7 +17,7 @@ class Asteroid {
         this.targetX = target.x;
         this.targetY = target.y;
 
-        this.live = 1000;
+        this.live = 100;
     }
 
 

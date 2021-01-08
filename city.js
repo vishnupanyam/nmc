@@ -8,7 +8,7 @@ class City {
         this.x = pos.x;
         this.y = pos.y;
 
-		this.live = 100;        
+		this.live = City.LIVE;        
     }
 
     draw(ctx){
@@ -25,3 +25,5 @@ class City {
 		this.live -= value;
 	}    
 }
+
+City.LIVE = 100;

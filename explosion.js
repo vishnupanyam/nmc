@@ -1,8 +1,5 @@
 class Explosion {
 
-
-    static LIVE = 300;
-
     constructor(pos, score) {
 
         this.radius = 1;
@@ -65,3 +62,5 @@ class Explosion {
 
     }
 }
+
+Explosion.LIVE = 500;
