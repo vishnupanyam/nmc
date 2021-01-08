@@ -2,6 +2,9 @@ class Asteroid {
 
     constructor(pos,target, speed) {
 
+        this.trailColor = "orange";
+        this.bodyColor = "red";
+
         this.radius = 5;
         this.speed = speed;
 
@@ -42,9 +45,17 @@ class Asteroid {
 
     draw(ctx) {
 
+        // trails
+        ctx.beginPath();                           
+        ctx.moveTo(this.originX, this.originY );
+        ctx.lineTo(this.x, this.y);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = this.trailColor;    
+        ctx.stroke();         
+
         ctx.beginPath();
-        ctx.strokeStyle = 'red';
-        ctx.fillStyle = 'red';
+        ctx.strokeStyle = this.bodyColor;
+        ctx.fillStyle = this.bodyColor;
         ctx.arc(this.x,this.y,this.radius,2*Math.PI,false);
         ctx.fill();
         ctx.stroke();
