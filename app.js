@@ -34,6 +34,11 @@ var explosions = [];
 
 var asteroidsWave = [];
 
+
+var targetIds = [];
+
+
+
 function init() {
 
 	// start & score
@@ -102,7 +107,7 @@ function initLevel(level) {
         // add to asteroid wave
         asteroidsWave.push(asteroid);
 
-        if (asteroidsWave.length > 25) break;
+        if (asteroidsWave.length > 100) break;
     }
 }
 
@@ -165,6 +170,7 @@ function step(dt) {
 		cities.forEach( city => {
             if (city.live > 0) {
                 if (asteroid.collide(city)) {
+
                     asteroid.live = 0;
                     explosions.push(new Explosion(OTHER, {x:asteroid.x,y:asteroid.y}));
     
@@ -194,26 +200,45 @@ function step(dt) {
 
 
     if (game.mode == GAME_MODE_AUTO) {
+
+        // keep only remain targets of remain asteroids
+        var remainAsteroids = [];
+        asteroids.forEach(asteroid => {
+            var asteroidId = getAsteroidId(asteroid);
+            remainAsteroids.push(asteroidId);
+        });
+        targetIds = targetIds.filter(id => remainAsteroids.filter( id2 => id2 == id ).length > 0 );
+
+        if (missiles.length == 0) targetIds = [];
+
         var towers = cities.filter(city => city instanceof Tower && city.live > 0);
 
         if (towers.length > 0) {
 
-
             for(var i=0; i< asteroids.length; i++) {
 
                 var tower = towers[Math.floor(Math.random()*towers.length)];
+
                 var target = asteroids[i];
+                var targetId = getAsteroidId(asteroids[i]);
     
-                if (missiles.length < 3) {
+                if (targetIds.filter( t => targetId == t).length == 1) continue;
+
+                if (missiles.length < 100) { // asteroids.length
+
+                    var pos = intercept({x:tower.x, y:tower.y}, {x:target.x, y:target.y, vx: target.vx, vy:target.vy}, conf.MISSILE_SPEED/33);
            
-                   var pos = intercept({x:tower.x, y:tower.y}, {x:target.x, y:target.y, vx: target.vx, vy:target.vy}, conf.MISSILE_SPEED/35);
-           
+                    if (pos == null) continue;
+                    //if (pos.y < height*1/5) continue;
+                    //if (pos.y > height-height*2/5) continue;
+
                    // create missile
                    var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
                
                    // add to missile stack
                    missiles.push(missile);
-               
+
+                   targetIds.push(targetId);
                 }
         
             }
@@ -260,7 +285,7 @@ function draw(ctx) {
 
 
     scoreEl.innerHTML = score.points;
-    levelEl.innerHTML = game.level;
+    levelEl.innerHTML = game.level; // +' '+ targetIds;
 
 }
 
@@ -344,7 +369,9 @@ window.addEventListener( 'keyup', onkeyup );
 
 
 
-
+function getAsteroidId(target) {
+    return target.targetX.toFixed(2) +'-'+ target.targetY.toFixed(2) +'-'+ target.angle.toFixed(2);    
+}
 
 
 
