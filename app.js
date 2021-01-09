@@ -194,19 +194,31 @@ function step(dt) {
 
 
     if (game.mode == GAME_MODE_AUTO) {
-        var tower = cities[4];
-        var enemy = asteroids[0];
-        if (enemy != null && missiles.length < 1) {
-   
-           var pos = intercept({x:tower.x, y:tower.y}, {x:enemy.x, y:enemy.y, vx: enemy.vx, vy:enemy.vy}, conf.MISSILE_SPEED/35);
-   
-           // create missile
-           var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
-       
-           // add to missile stack
-           missiles.push(missile);
-       
+        var towers = cities.filter(city => city instanceof Tower && city.live > 0);
+
+        if (towers.length > 0) {
+
+
+            for(var i=0; i< asteroids.length; i++) {
+
+                var tower = towers[Math.floor(Math.random()*towers.length)];
+                var target = asteroids[i];
+    
+                if (missiles.length < 3) {
+           
+                   var pos = intercept({x:tower.x, y:tower.y}, {x:target.x, y:target.y, vx: target.vx, vy:target.vy}, conf.MISSILE_SPEED/35);
+           
+                   // create missile
+                   var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
+               
+                   // add to missile stack
+                   missiles.push(missile);
+               
+                }
+        
+            }
         }
+
     }
 
 
