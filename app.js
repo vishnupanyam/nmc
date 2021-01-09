@@ -9,7 +9,7 @@ const CITY = 3;
 
 const GAME_STOP = 0;
 const GAME_RUNNING = 1;
-const GAME_LEVEL_INIT = 10;
+const GAME_LEVEL_INIT = 1;
 var game = {
     status:GAME_RUNNING,
     level:GAME_LEVEL_INIT
@@ -27,6 +27,7 @@ var asteroids = [];
 var missiles = [];
 var explosions = [];
 
+var asteroidsWave = [];
 
 function init() {
 
@@ -73,11 +74,37 @@ function init() {
     cities.push(new City({x:width*8/10,y:height-10}));
     cities.push(new Tower({x:width*9/10,y:height-10}));
 
+
+    initLevel(GAME_LEVEL_INIT);
     game.status = GAME_RUNNING;
-    game.level = GAME_LEVEL_INIT;
+
 }
 
+function initLevel(level) {
+
+    game.level = level;
+
+    while (asteroidsWave.length < game.level*5) {
+        // create new asteroid
+        var origin = {x: Math.random()*width, y:height*1/10};
+
+        var num = Math.floor(Math.random() * cities.length);
+        var target = cities[num];
+        //var dest = {x:width/2 + (Math.random()-0.5)* width, y:height}; 
+        var dest = {x:target.x, y:height}; 
+        var asteroid = new Asteroid( origin, dest, conf.ASTEROID_SPEED);
+
+        // add to asteroid wave
+        asteroidsWave.push(asteroid);
+
+        if (asteroidsWave.length > 25) break;
+    }
+}
+
+
+
 // game loop
+
 function loop() {
 	if (game.status == GAME_RUNNING) 
         step(60/1000);    
@@ -87,13 +114,9 @@ function loop() {
 
 function step(dt) {
 
-    if (asteroids.length < game.level*5) {
-        // create new asteroid
-        var origin = {x: Math.random()*width, y:height*1/10};
-        var dest = {x:width/2 + (Math.random()-0.5)* width, y:height};
-        var asteroid = new Asteroid( origin, dest, conf.ASTEROID_SPEED);
 
-        // add to asteroid stack
+    while (asteroidsWave.length>0) {
+        var asteroid = asteroidsWave.pop();
         asteroids.push(asteroid);
     }
     
@@ -135,16 +158,18 @@ function step(dt) {
 	// cities-asteroid interaction
 	asteroids.forEach(asteroid => {
 		cities.forEach( city => {
-			if (asteroid.collide(city)) {
-				asteroid.live = 0;
-				explosions.push(new Explosion(OTHER, {x:asteroid.x,y:asteroid.y}));
-
-				city.damage(100);
-
-				if (city.live < 1)
-					explosions.push(new Explosion(CITY, {x:city.x,y:city.y}));
-
-			}
+            if (city.live > 0) {
+                if (asteroid.collide(city)) {
+                    asteroid.live = 0;
+                    explosions.push(new Explosion(OTHER, {x:asteroid.x,y:asteroid.y}));
+    
+                    city.damage(100);
+    
+                    if (city.live < 1)
+                        explosions.push(new Explosion(CITY, {x:city.x,y:city.y}));
+    
+                }
+            } 
 		});
 	});    
 
@@ -152,17 +177,19 @@ function step(dt) {
     asteroids = asteroids.filter(asteroid => asteroid.live > 0);
     missiles = missiles.filter(missile => missile.live > 0);
     explosions = explosions.filter(explosion => explosion.live > 0);
-    cities = cities.filter(city => city.live > 0);
+    // cities = cities.filter(city => city.live > 0);
 
-	if(cities.length==0)
+
+	if(cities.filter(city => city.live>0).length==0)
         gameOver();    
         
-    if (score.points > game.level*1000) {
-        console.log('level up');
-        game.level += 1;
-    }
+    if (asteroids.length == 0)
+        initLevel(game.level + 1);
 
 }
+
+
+
 
 function draw(ctx) {
 
@@ -237,7 +264,7 @@ gameBtn.addEventListener('click', () => {
 
 function getTower(cities,playerX) {
 
-    var towers = cities.filter(city => city instanceof Tower);
+    var towers = cities.filter(city => city instanceof Tower && city.live > 0);
 
     var tower = null;
 

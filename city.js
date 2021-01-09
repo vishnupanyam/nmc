@@ -2,12 +2,11 @@ class City {
 
     constructor(pos) {
 
-        this.color = 'green';
-
-        this.radius = 20;
-
         this.x = pos.x;
         this.y = pos.y;
+
+        this.color = 'green';
+        this.radius = 20;
 
 		this.live = City.LIVE;        
     }
@@ -21,12 +20,14 @@ class City {
         ctx.fill();
         ctx.stroke();
 
-        // ctx.beginPath()
-        // ctx.strokeStyle = this.color;
-        // ctx.fillStyle = 'white';
-        // ctx.arc(this.x,this.y,this.radius,2*Math.PI,false);
-        // ctx.fill();
-        // ctx.stroke();
+        if (this.live < 1) {
+            ctx.beginPath()
+            ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'black';
+            ctx.arc(this.x,this.y-this.radius*1.5,this.radius*1.5,2*Math.PI,false);
+            ctx.fill();
+            ctx.stroke();
+        }
         
     }
 
