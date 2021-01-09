@@ -11,18 +11,18 @@ const GAME_STOP = 0;
 const GAME_RUNNING = 1;
 const GAME_LEVEL_INIT = 1;
 
-const GAME_MODE_MANUAL = 1;
-const GAME_MODE_AUTO = 2;
+const GAME_MODE_MANUAL = 'MANUAL';
+const GAME_MODE_AUTO = 'AUTO';
 
 var game = {
     status:GAME_RUNNING,
     level:GAME_LEVEL_INIT,
-    mode: GAME_MODE_MANUAL
+    mode: GAME_MODE_AUTO
 };
 
 var conf = {
-    ASTEROID_SPEED: 20,
-    MISSILE_SPEED: 150,
+    ASTEROID_SPEED: 40,
+    MISSILE_SPEED: 200,
     SCORE_BASE:25
 };
 var score = {};
@@ -37,6 +37,8 @@ var asteroidsWave = [];
 
 var targetIds = [];
 
+var limitTop = 0;
+var limitBottom = 0;
 
 
 function init() {
@@ -46,8 +48,8 @@ function init() {
 	scoreEl = document.getElementById( 'scoreEl' );
 	levelEl = document.getElementById( 'levelEl' );
 	scoreBigEl = document.getElementById( 'scoreBigEl' );
-	score = { points: 0 };
 	modalEl.style.display = 'none';    
+
 
     canvas = document.getElementById("game-canvas");
 
@@ -67,6 +69,9 @@ function init() {
 
     ctx = canvas.getContext("2d");
 
+    limitTop = height*3/8;
+    limitBottom = height*5/8;
+
 
 	cities = [];
 	missiles = [];
@@ -84,6 +89,7 @@ function init() {
     cities.push(new City({x:width*8/10,y:height-10}));
     cities.push(new Tower({x:width*9/10,y:height-10}));
 
+	score = { points: 0, missiles: 0 };
 
     initLevel(GAME_LEVEL_INIT);
     game.status = GAME_RUNNING;
@@ -107,7 +113,7 @@ function initLevel(level) {
         // add to asteroid wave
         asteroidsWave.push(asteroid);
 
-        if (asteroidsWave.length > 100) break;
+        if (asteroidsWave.length > 200) break;
     }
 }
 
@@ -124,6 +130,7 @@ function loop() {
 
 function step(dt) {
 
+    game.dt = dt;
 
     while (asteroidsWave.length>0) {
         var asteroid = asteroidsWave.pop();
@@ -194,7 +201,7 @@ function step(dt) {
 	if(cities.filter(city => city.live>0).length==0)
         gameOver();    
         
-    if (asteroids.length == 0)
+    if (asteroids.length == 0 && explosions.length == 0)
         initLevel(game.level + 1);
 
 
@@ -226,19 +233,29 @@ function step(dt) {
 
                 if (missiles.length < 100) { // asteroids.length
 
-                    var pos = intercept({x:tower.x, y:tower.y}, {x:target.x, y:target.y, vx: target.vx, vy:target.vy}, conf.MISSILE_SPEED/33);
+                    var pos = intercept({x:tower.x, y:tower.y}, {x:target.x, y:target.y, vx: target.vx, vy:target.vy}, conf.MISSILE_SPEED*game.dt);
+
            
                     if (pos == null) continue;
-                    //if (pos.y < height*1/5) continue;
-                    //if (pos.y > height-height*2/5) continue;
 
-                   // create missile
-                   var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
-               
-                   // add to missile stack
-                   missiles.push(missile);
+                    // add explosion distance
+                    let explosionDist = 80;
+                    pos = {x: pos.x+explosionDist*Math.cos(target.angle), y: pos.y+explosionDist*Math.sin(target.angle)};
 
-                   targetIds.push(targetId);
+                    //if (pos.y < limitTop && pos.y > limitBottom) continue;
+
+                    if (pos.y > limitTop && pos.y < limitBottom) {
+
+                        // create missile
+                        var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
+                        score.missiles += 1;
+                    
+                        // add to missile stack
+                        missiles.push(missile);
+
+                        targetIds.push(targetId);
+                    }
+
                 }
         
             }
@@ -259,15 +276,18 @@ function draw(ctx) {
     ctx.fillRect(0,0,width,height);
     ctx.stroke();
 
+    if (game.mode == GAME_MODE_AUTO) {
+        ctx.fillStyle = '#030301';
+        ctx.fillRect(0,limitTop,width,limitBottom-limitTop);
+        ctx.stroke();    
+    }
+
     // canvas text
     ctx.beginPath()
-    ctx.textAlign = 'left';
-    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.font = '14px Arial';
     ctx.fillStyle = 'white';
-    if (game.mode == GAME_MODE_MANUAL)
-        ctx.fillText('Press espace for mode auto', width - 150, 20);
-    else
-        ctx.fillText('Press espace for mode manual', width - 150, 20);
+    ctx.fillText('DEMO v0.1', width - 60, 20);
     ctx.stroke();
 
 
@@ -286,6 +306,8 @@ function draw(ctx) {
 
     scoreEl.innerHTML = score.points;
     levelEl.innerHTML = game.level; // +' '+ targetIds;
+    autoBtn.innerHTML = game.mode;
+
 
 }
 
@@ -297,7 +319,7 @@ loop();
 
 function gameOver() {
 	game.status = GAME_STOP;
-	scoreBigEl.innerHTML = score.points;
+	scoreBigEl.innerHTML = score.points +' ('+ score.missiles +')';
 	modalEl.style.display = 'flex';
 }
 
@@ -317,6 +339,9 @@ canvas.addEventListener('click', function(e) {
 
         // add to missile stack
         missiles.push(missile);
+
+        score.missiles += 1;
+
     }
 
 
@@ -326,7 +351,9 @@ gameBtn.addEventListener('click', () => {
 	init();
 });
 
-
+autoBtn.addEventListener('click', () => {
+    game.mode = (game.mode != GAME_MODE_MANUAL?GAME_MODE_MANUAL:GAME_MODE_AUTO);
+});
 
 // INPUT
 
