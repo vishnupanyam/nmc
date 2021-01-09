@@ -9,9 +9,10 @@ const CITY = 3;
 
 const GAME_STOP = 0;
 const GAME_RUNNING = 1;
+const GAME_LEVEL_INIT = 10;
 var game = {
     status:GAME_RUNNING,
-    level:1
+    level:GAME_LEVEL_INIT
 };
 
 var conf = {
@@ -62,18 +63,18 @@ function init() {
     explosions = [];
         
     // create cities and defense towers
-    cities.push(new City({x:width*1/10,y:height-10},true));
-    cities.push(new City({x:width*2/10,y:height-10},false));
-    cities.push(new City({x:width*3/10,y:height-10},false));
-    cities.push(new City({x:width*4/10,y:height-10},false));
-    cities.push(new City({x:width*5/10,y:height-10},true));
-    cities.push(new City({x:width*6/10,y:height-10},false));
-    cities.push(new City({x:width*7/10,y:height-10},false));
-    cities.push(new City({x:width*8/10,y:height-10},false));
-    cities.push(new City({x:width*9/10,y:height-10},true));
+    cities.push(new Tower({x:width*1/10,y:height-10}));
+    cities.push(new City({x:width*2/10,y:height-10}));
+    cities.push(new City({x:width*3/10,y:height-10}));
+    cities.push(new City({x:width*4/10,y:height-10}));
+    cities.push(new Tower({x:width*5/10,y:height-10}));
+    cities.push(new City({x:width*6/10,y:height-10}));
+    cities.push(new City({x:width*7/10,y:height-10}));
+    cities.push(new City({x:width*8/10,y:height-10}));
+    cities.push(new Tower({x:width*9/10,y:height-10}));
 
     game.status = GAME_RUNNING;
-    game.level = 1;
+    game.level = GAME_LEVEL_INIT;
 }
 
 // game loop
@@ -214,16 +215,50 @@ canvas.addEventListener('click', function(e) {
     var playerDestX = e.pageX + this.offsetLeft;
     var playerDestY = e.pageY + this.offsetTop;
 
-    console.log('player point at x:'+ playerDestX +' y:'+ playerDestY);
+    //console.log('player point at x:'+ playerDestX +' y:'+ playerDestY);
 
-    // create missile
-    var missile = new Missile( {x:width/2, y:height}, {x:playerDestX, y:playerDestY}, conf.MISSILE_SPEED);
 
-    // add to missile stack
-    missiles.push(missile);
+    var tower = getTower(cities,playerDestX);
+
+    if (tower != null) {
+        // create missile
+        var missile = new Missile( {x:tower.x,y:tower.y}, {x:playerDestX, y:playerDestY}, conf.MISSILE_SPEED);
+
+        // add to missile stack
+        missiles.push(missile);
+    }
+
 
 });
 
 gameBtn.addEventListener('click', () => {
 	init();
 });
+
+function getTower(cities,playerX) {
+
+    var towers = cities.filter(city => city instanceof Tower);
+
+    var tower = null;
+
+    var minDist = Infinity;
+
+    for (var i=0; i<towers.length;i++) {
+
+        var dist = getDist(towers[i], {x:playerX,y:0});
+
+        if ( dist < minDist ) {
+            tower = towers[i];
+            minDist = dist;
+        }
+    };
+
+    return tower;
+}
+
+
+function getDist(a,b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);    
+}

@@ -1,15 +1,14 @@
 class City {
 
-    constructor(pos,cannon) {
+    constructor(pos) {
 
         this.color = 'green';
 
-        this.radius = (cannon == true?30:20);
+        this.radius = 20;
 
         this.x = pos.x;
         this.y = pos.y;
 
-        this.cannon = cannon;
 		this.live = City.LIVE;        
     }
 
@@ -37,3 +36,14 @@ class City {
 }
 
 City.LIVE = 100;
+
+
+class Tower extends City {
+
+    constructor(pos) {
+        super(pos);
+
+        this.color = 'blue';
+        this.radius = 30;        
+    }
+}
