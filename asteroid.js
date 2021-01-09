@@ -14,6 +14,9 @@ class Asteroid {
         this.x = pos.x;
         this.y = pos.y;
 
+		this.vx = 0;
+		this.vy = 0;
+
         this.targetX = target.x;
         this.targetY = target.y;
 
@@ -36,8 +39,12 @@ class Asteroid {
         } else {
             var angle = -Math.atan2(this.originX -this.targetX, this.originY - this.targetY) - Math.PI/2;
 
-            this.x += dt*this.speed * Math.cos(angle);
-            this.y += dt*this.speed * Math.sin(angle);
+            this.vx = dt*this.speed * Math.cos(angle);
+            this.vy = dt*this.speed * Math.sin(angle);
+
+            this.x += this.vx;
+            this.y += this.vy;
+
         }
 
         this.distanceToTarget = distanceToTarget;
