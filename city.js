@@ -3,7 +3,7 @@ class City {
     constructor(pos) {
 
         this.x = pos.x;
-        this.y = pos.y;
+        this.y = pos.y - 20;
 
         this.color = 'green';
         this.radius = 20;
@@ -20,7 +20,7 @@ class City {
         ctx.beginPath()
         ctx.strokeStyle = this.color;
         ctx.fillStyle = this.color;
-        ctx.rect(this.x - this.radius ,this.y - this.radius, this.radius*2, this.radius*2 );
+        ctx.rect(this.x - this.radius ,this.y, this.radius*2, this.radius );
         ctx.fill();
         ctx.stroke();
 
@@ -28,7 +28,7 @@ class City {
             ctx.beginPath()
             ctx.strokeStyle = 'black';
             ctx.fillStyle = 'black';
-            ctx.arc(this.x,this.y-this.radius*1.5,this.radius*1.5,2*Math.PI,false);
+            ctx.arc(this.x,this.y-this.radius*0.3,this.radius*0.8,2*Math.PI,false);
             ctx.fill();
             ctx.stroke();
         }
@@ -48,9 +48,11 @@ class Tower extends City {
     constructor(pos,loadSpeed) {
         super(pos);
 
+        this.id = Tower.ID++;
+        this.y = pos.y - 20;
 
         this.color = 'blue';
-        this.radius = 30;
+        this.radius = 20;
     
         this.load = Tower.MAX_LOAD/2;    
         if (loadSpeed == null) loadSpeed = 20;
@@ -72,7 +74,7 @@ class Tower extends City {
             ctx.beginPath()
             ctx.strokeStyle = this.color;
             ctx.fillStyle = 'black';
-            ctx.rect(this.x-1 - this.radius ,this.y+1 - this.radius, this.radius*2, this.radius*2-2 );
+            ctx.rect(this.x - this.radius ,this.y+1 - this.radius, this.radius*2, this.radius*2-2 );
             ctx.fill();
             ctx.stroke();
 
@@ -109,3 +111,4 @@ class Tower extends City {
     }
 }
 Tower.MAX_LOAD = 100;
+Tower.ID = 1;

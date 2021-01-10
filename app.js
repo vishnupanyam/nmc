@@ -34,7 +34,7 @@ var explosions = [];
 
 var asteroidsWave = [];
 
-
+var targetFocus = [];
 var targetIds = [];
 
 var limitTop = 0;
@@ -79,15 +79,15 @@ function init() {
     explosions = [];
         
     // create cities and defense towers
-    cities.push(new Tower({x:width*1/10,y:height-30}));
-    cities.push(new City({x:width*2/10,y:height-30}));
-    cities.push(new City({x:width*3/10,y:height-30}));
-    cities.push(new City({x:width*4/10,y:height-30}));
-    cities.push(new Tower({x:width*5/10,y:height-30}));
-    cities.push(new City({x:width*6/10,y:height-30}));
-    cities.push(new City({x:width*7/10,y:height-30}));
-    cities.push(new City({x:width*8/10,y:height-30}));
-    cities.push(new Tower({x:width*9/10,y:height-30}));
+    cities.push(new Tower({x:width*1/10,y:height}));
+    cities.push(new City({x:width*2/10,y:height}));
+    cities.push(new City({x:width*3/10,y:height}));
+    cities.push(new City({x:width*4/10,y:height}));
+    cities.push(new Tower({x:width*5/10,y:height}));
+    cities.push(new City({x:width*6/10,y:height}));
+    cities.push(new City({x:width*7/10,y:height}));
+    cities.push(new City({x:width*8/10,y:height}));
+    cities.push(new Tower({x:width*9/10,y:height}));
 
 	score = { points: 0, missiles: 0 };
 
@@ -123,7 +123,7 @@ function initLevel(level) {
 
 function loop() {
 	if (game.status == GAME_RUNNING) 
-        step(60/1000);    
+        step(60/2000);    // 1000
     draw(ctx);
     window.requestAnimationFrame(loop);
 }
@@ -202,12 +202,15 @@ function step(dt) {
 	if(cities.filter(city => city.live>0).length==0)
         gameOver();    
         
-    if (asteroids.length == 0 && explosions.length == 0)
+    if (asteroids.length == 0 && explosions.length == 0) {
         initLevel(game.level + 1);
+        targetFocus = [];
+    }
 
 
 
     if (game.mode == GAME_MODE_AUTO) {
+
 
         // keep only remain targets of remain asteroids
         var remainAsteroids = [];
@@ -217,20 +220,27 @@ function step(dt) {
         });
         targetIds = targetIds.filter(id => remainAsteroids.filter( id2 => id2 == id ).length > 0 );
 
+
+
         if (missiles.length == 0) targetIds = [];
 
-        var towers = cities.filter(city => city instanceof Tower && city.live > 0);
+        var towers = cities.filter(city => city instanceof Tower && city.live > 0 && city.isReady());
 
-        if (towers.length > 0) {
+        for(var j=0; j< towers.length; j++) {
 
-            for(var i=0; i< asteroids.length; i++) {
+            var tower = towers[j];
 
-                var tower = towers[Math.floor(Math.random()*towers.length)];
+            // Order asteroids by distance from this tower
+
+            var sortedAsteroids = sortByDistance(tower,asteroids);
+
+            for(var i=0; i< sortedAsteroids.length; i++) {
 
                 var target = asteroids[i];
-                var targetId = getAsteroidId(asteroids[i]);
-    
+                var targetId = getAsteroidId(target);
+
                 if (targetIds.filter( t => targetId == t).length == 1) continue;
+
 
                 if (missiles.length < 100) { // asteroids.length
 
@@ -258,7 +268,11 @@ function step(dt) {
                             missiles.push(missile);
     
                             targetIds.push(targetId);
+
+                            targetFocus.push(new Focus(tower, targetId, target.x, target.y, target.vx, target.vy));
+
                         }
+
                     }
 
                 }
@@ -280,6 +294,9 @@ function draw(ctx) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0,0,width,height);
     ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.lineWidth = 2;
 
     if (game.mode == GAME_MODE_AUTO) {
         ctx.fillStyle = '#030301';
@@ -307,6 +324,9 @@ function draw(ctx) {
 
     // draw explosions
     explosions.forEach(explosion => { explosion.draw(ctx); });
+
+    // draw focus
+    targetFocus.forEach(item => { item.draw(ctx); });
 
 
     scoreEl.innerHTML = score.points;
@@ -394,11 +414,15 @@ window.addEventListener( 'keyup', onkeyup );
 
 
 
+// TODO Order asteroids by distance from the tower
+function sortByDistance(tower, asteroids) {
+    return asteroids.sort(function ( a, b ) {
+        return getDist(tower,b);
+    });
+}
 
 
-
-
-
+  
 
 
 

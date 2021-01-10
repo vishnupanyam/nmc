@@ -51,13 +51,15 @@ class Missile {
         ctx.fill();
         ctx.stroke();
 
+        let crossSize = 5;
+
         ctx.strokeStyle = 'lightgreen';
-        ctx.moveTo(this.targetX-10, this.targetY-10);
-        ctx.lineTo(this.targetX+10, this.targetY+10);
+        ctx.moveTo(this.targetX-crossSize, this.targetY-crossSize);
+        ctx.lineTo(this.targetX+crossSize, this.targetY+crossSize);
         ctx.stroke();
     
-        ctx.moveTo(this.targetX+10, this.targetY-10);
-        ctx.lineTo(this.targetX-10, this.targetY+10);
+        ctx.moveTo(this.targetX+crossSize, this.targetY-crossSize);
+        ctx.lineTo(this.targetX-crossSize, this.targetY+crossSize);
         ctx.stroke();
             
     }

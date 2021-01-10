@@ -13,7 +13,7 @@ class Explosion {
         if (owner == OTHER)
             this.color = 'red';
         if (owner == CITY) {
-            this.value = 100;
+            this.value = 80;
             this.color = 'lightgreen';
         }
 
