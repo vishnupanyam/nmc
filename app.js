@@ -339,6 +339,9 @@ canvas.addEventListener('click', function(e) {
     var tower = getTower(cities,playerDestX);
 
     if (tower != null) {
+
+        tower.shot();
+
         // create missile
         var missile = new Missile( {x:tower.x,y:tower.y}, {x:playerDestX, y:playerDestY}, conf.MISSILE_SPEED);
 
@@ -409,7 +412,7 @@ function getAsteroidId(target) {
 
 function getTower(cities,playerX) {
 
-    var towers = cities.filter(city => city instanceof Tower && city.live > 0);
+    var towers = cities.filter(item => item instanceof Tower && item.live > 0 && item.isReady());
 
     var tower = null;
 
