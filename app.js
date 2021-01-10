@@ -123,7 +123,7 @@ function initLevel(level) {
 
 function loop() {
 	if (game.status == GAME_RUNNING) 
-        step(60/2000);    // 1000
+        step(60/1000);    // 1000
     draw(ctx);
     window.requestAnimationFrame(loop);
 }
@@ -416,10 +416,16 @@ window.addEventListener( 'keyup', onkeyup );
 
 // TODO Order asteroids by distance from the tower
 function sortByDistance(tower, asteroids) {
+
     return asteroids.sort(function ( a, b ) {
-        return getDist(tower,b);
+        if (getDist(a,tower) < getDist(b,tower) )
+        return -1;
+     if (getDist(a,tower) > getDist(b,tower))
+       return 1;
+     return 0;
     });
 }
+
 
 
   

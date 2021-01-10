@@ -55,7 +55,7 @@ class Tower extends City {
         this.radius = 20;
     
         this.load = Tower.MAX_LOAD/2;    
-        if (loadSpeed == null) loadSpeed = 20;
+        if (loadSpeed == null) loadSpeed = 50;
         this.loadSpeed = loadSpeed;
     }
 
