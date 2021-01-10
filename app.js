@@ -69,8 +69,8 @@ function init() {
 
     ctx = canvas.getContext("2d");
 
-    limitTop = height*3/8;
-    limitBottom = height*5/8;
+    limitTop = height*2/8;
+    limitBottom = height*6/8;
 
 
 	cities = [];
@@ -79,15 +79,15 @@ function init() {
     explosions = [];
         
     // create cities and defense towers
-    cities.push(new Tower({x:width*1/10,y:height-10}));
-    cities.push(new City({x:width*2/10,y:height-10}));
-    cities.push(new City({x:width*3/10,y:height-10}));
-    cities.push(new City({x:width*4/10,y:height-10}));
-    cities.push(new Tower({x:width*5/10,y:height-10}));
-    cities.push(new City({x:width*6/10,y:height-10}));
-    cities.push(new City({x:width*7/10,y:height-10}));
-    cities.push(new City({x:width*8/10,y:height-10}));
-    cities.push(new Tower({x:width*9/10,y:height-10}));
+    cities.push(new Tower({x:width*1/10,y:height-30}));
+    cities.push(new City({x:width*2/10,y:height-30}));
+    cities.push(new City({x:width*3/10,y:height-30}));
+    cities.push(new City({x:width*4/10,y:height-30}));
+    cities.push(new Tower({x:width*5/10,y:height-30}));
+    cities.push(new City({x:width*6/10,y:height-30}));
+    cities.push(new City({x:width*7/10,y:height-30}));
+    cities.push(new City({x:width*8/10,y:height-30}));
+    cities.push(new Tower({x:width*9/10,y:height-30}));
 
 	score = { points: 0, missiles: 0 };
 
@@ -142,6 +142,7 @@ function step(dt) {
     asteroids.forEach(asteroid => { asteroid.step(dt); });
     missiles.forEach(missile => { missile.step(dt); });
     explosions.forEach(explosion => { explosion.step(dt); });
+    cities.forEach(city => { city.step(dt); });
 
     
     missiles.forEach( function(missile) { 
@@ -246,14 +247,18 @@ function step(dt) {
 
                     if (pos.y > limitTop && pos.y < limitBottom) {
 
-                        // create missile
-                        var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
-                        score.missiles += 1;
-                    
-                        // add to missile stack
-                        missiles.push(missile);
+                        if (tower.isReady()) {
+                            tower.shot();
 
-                        targetIds.push(targetId);
+                            // create missile
+                            var missile = new Missile( {x:tower.x,y:tower.y}, {x:pos.x, y:pos.y}, conf.MISSILE_SPEED);
+                            score.missiles += 1;
+                        
+                            // add to missile stack
+                            missiles.push(missile);
+    
+                            targetIds.push(targetId);
+                        }
                     }
 
                 }
@@ -319,7 +324,7 @@ loop();
 
 function gameOver() {
 	game.status = GAME_STOP;
-	scoreBigEl.innerHTML = score.points +' ('+ score.missiles +')';
+	scoreBigEl.innerHTML = score.points; // +' ('+ score.missiles +')';
 	modalEl.style.display = 'flex';
 }
 

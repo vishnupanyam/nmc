@@ -3,7 +3,7 @@ class Missile {
 
     constructor(pos,target, speed) {
 
-        this.radius = 5;
+        this.radius = 2;
         this.speed = speed;
 
         this.originX = pos.x;
