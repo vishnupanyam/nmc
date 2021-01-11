@@ -4,7 +4,7 @@ class Explosion {
 
         if (score == null) score = 0;
 
-        this.value = 50;
+        this.power = 60;
         this.radius = 1;
         this.owner = owner;
 
@@ -13,7 +13,7 @@ class Explosion {
         if (owner == OTHER)
             this.color = 'red';
         if (owner == CITY) {
-            this.value = 80;
+            this.power = 100;
             this.color = 'lightgreen';
         }
 
@@ -31,9 +31,9 @@ class Explosion {
         this.live -= dt*100;
 
         if (this.live > Explosion.LIVE/2)
-            this.radius = 0 + this.value*(Explosion.LIVE - this.live)/Explosion.LIVE;
+            this.radius = 10 + this.power*(Explosion.LIVE - this.live)/Explosion.LIVE;
         else
-            this.radius = this.value - this.value*(Explosion.LIVE - this.live)/Explosion.LIVE;
+            this.radius = 10+this.power - this.power*(Explosion.LIVE - this.live)/Explosion.LIVE;
 
         if (this.radius < 1)
             this.radius = 0;
@@ -42,26 +42,48 @@ class Explosion {
 
     draw(ctx) {
 
-        ctx.beginPath();
-        ctx.strokeStyle = this.color;
-        ctx.fillStyle = 'black';
-        ctx.arc(this.x,this.y,this.radius,2*Math.PI,false);
-        ctx.fill();
-        ctx.stroke();
+        this.explode(this.radius);
 
-        if ( this.score > 0 && this.radius > 10) {
+        if ( this.score > 0 && this.radius > 12) {
             ctx.save();
             ctx.beginPath();
             ctx.textAlign = "right";
             ctx.textBaseline = "middle";
-            ctx.fillStyle = "white";
-            ctx.font = "18px Verdana";
-        
-            ctx.fillText(this.score , this.x+10, this.y);            
+            ctx.fillStyle = "rgba(255,255,255,0.9)";
+            ctx.font = "17px Verdana";
+            ctx.fillText(this.score , this.x+12, this.y);        
             ctx.restore();
         }        
             
     }
+
+
+	explode(size) {
+
+        //		if (this.explodeTime<0) return;
+        
+                // draw the explosion (concentric circles of different colours)
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, size * 1.1, 0, Math.PI * 2, false);
+                ctx.fill();
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, size * 1.1, 0, Math.PI * 2, false);
+                ctx.fill();
+                ctx.fillStyle = "orange";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, size * 1.0, 0, Math.PI * 2, false);
+                ctx.fill();
+                ctx.fillStyle = "yellow";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, size * 0.95, 0, Math.PI * 2, false);
+                ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, size * 0.9, 0, Math.PI * 2, false);
+                ctx.fill();
+            }    
 
 
     collide(other) {
@@ -76,4 +98,4 @@ class Explosion {
     }
 }
 
-Explosion.LIVE = 500;
+Explosion.LIVE = 1000;

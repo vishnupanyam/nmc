@@ -21,6 +21,11 @@ class Missile {
 
     step(dt) {
 
+        var angle = -Math.atan2(this.originX -this.targetX, this.originY - this.targetY) - Math.PI/2;
+
+        this.x += dt*this.speed * Math.cos(angle);
+        this.y += dt*this.speed * Math.sin(angle);
+
         var dx = this.targetX - this.x;
         var dy = this.targetY - this.y;
 
@@ -30,12 +35,9 @@ class Missile {
             this.distanceToTarget = distanceToTarget;
 
         if (distanceToTarget > this.distanceToTarget) {
+            this.x = this.targetX;
+            this.y = this.targetY;
             this.live = 0;
-        } else {
-            var angle = -Math.atan2(this.originX -this.targetX, this.originY - this.targetY) - Math.PI/2;
-
-            this.x += dt*this.speed * Math.cos(angle);
-            this.y += dt*this.speed * Math.sin(angle);
         }
 
         this.distanceToTarget = distanceToTarget;
@@ -45,14 +47,15 @@ class Missile {
     draw(ctx) {
 
         ctx.beginPath();
-        ctx.strokeStyle = 'green';
-        ctx.fillStyle = 'lightgreen';
+        ctx.strokeStyle = 'gray';
+        ctx.fillStyle = 'lightgray';
         ctx.arc(this.x,this.y,this.radius,2*Math.PI,false);
         ctx.fill();
         ctx.stroke();
 
         let crossSize = 5;
 
+        ctx.beginPath();
         ctx.strokeStyle = 'lightgreen';
         ctx.moveTo(this.targetX-crossSize, this.targetY-crossSize);
         ctx.lineTo(this.targetX+crossSize, this.targetY+crossSize);

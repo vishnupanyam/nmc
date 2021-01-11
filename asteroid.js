@@ -17,10 +17,11 @@ class Asteroid {
 		this.vx = 0;
 		this.vy = 0;
 
-        this.targetX = target.x;
-        this.targetY = target.y;
+        this.target = {};
+        this.target.x = target.x;
+        this.target.y = target.y;
 
-        this.angle = -Math.atan2(this.originX -this.targetX, this.originY - this.targetY) - Math.PI/2;
+        this.angle = -Math.atan2(this.originX -this.target.x, this.originY - this.target.y) - Math.PI/2;
 
         this.live = 100;
 
@@ -29,8 +30,8 @@ class Asteroid {
 
     step(dt) {
 
-        var dx = this.targetX - this.x;
-        var dy = this.targetY - this.y;
+        var dx = this.target.x - this.x;
+        var dy = this.target.y - this.y;
 
         var distanceToTarget = Math.sqrt(dx * dx + dy * dy);
 

@@ -9,20 +9,28 @@ const CITY = 3;
 
 const GAME_STOP = 0;
 const GAME_RUNNING = 1;
+const GAME_OVER= 2;
+
 const GAME_LEVEL_INIT = 1;
 
 const GAME_MODE_MANUAL = 'MANUAL';
 const GAME_MODE_AUTO = 'AUTO';
+const GAME_SHOW_FOCUS = false;
+const RELOAD_TIME_MS = 1000;
+
+const GAME_FPS = 60/500; // 60/1000
 
 var game = {
+    version: 0.2,
     status:GAME_RUNNING,
     level:GAME_LEVEL_INIT,
-    mode: GAME_MODE_AUTO
+    mode: GAME_MODE_MANUAL
 };
 
 var conf = {
-    ASTEROID_SPEED: 40,
-    MISSILE_SPEED: 200,
+    ASTEROID_SPEED: 10,
+    ASTEROID_SPEED_MAX: 60,
+    MISSILE_SPEED: 50,
     SCORE_BASE:25
 };
 var score = {};
@@ -33,12 +41,13 @@ var missiles = [];
 var explosions = [];
 
 var asteroidsWave = [];
+var cadence = 0;
+const CADENCE_TIME = 3;
 
 var targetFocus = [];
 var targetIds = [];
 
-var limitTop = 0;
-var limitBottom = 0;
+var targetArea = {top:0, bottom:0};
 
 
 function init() {
@@ -49,6 +58,7 @@ function init() {
 	levelEl = document.getElementById( 'levelEl' );
 	scoreBigEl = document.getElementById( 'scoreBigEl' );
 	modalEl.style.display = 'none';    
+	modalMenu.style.display = 'none';    
 
 
     canvas = document.getElementById("game-canvas");
@@ -69,8 +79,8 @@ function init() {
 
     ctx = canvas.getContext("2d");
 
-    limitTop = height*2/8;
-    limitBottom = height*6/8;
+    targetArea.top = height*2/8;
+    targetArea.bottom = height*7/8;
 
 
 	cities = [];
@@ -79,15 +89,15 @@ function init() {
     explosions = [];
         
     // create cities and defense towers
-    cities.push(new Tower({x:width*1/10,y:height}));
-    cities.push(new City({x:width*2/10,y:height}));
-    cities.push(new City({x:width*3/10,y:height}));
-    cities.push(new City({x:width*4/10,y:height}));
-    cities.push(new Tower({x:width*5/10,y:height}));
-    cities.push(new City({x:width*6/10,y:height}));
-    cities.push(new City({x:width*7/10,y:height}));
-    cities.push(new City({x:width*8/10,y:height}));
-    cities.push(new Tower({x:width*9/10,y:height}));
+    cities.push(new Tower({x:width*1/10,y:height*9/10},RELOAD_TIME_MS));
+    cities.push(new City({x:width*2/10,y:height*9/10}));
+    cities.push(new City({x:width*3/10,y:height*9/10}));
+    cities.push(new City({x:width*4/10,y:height*9/10}));
+    cities.push(new Tower({x:width*5/10,y:height*9/10},RELOAD_TIME_MS));
+    cities.push(new City({x:width*6/10,y:height*9/10}));
+    cities.push(new City({x:width*7/10,y:height*9/10}));
+    cities.push(new City({x:width*8/10,y:height*9/10}));
+    cities.push(new Tower({x:width*9/10,y:height*9/10},RELOAD_TIME_MS));
 
 	score = { points: 0, missiles: 0 };
 
@@ -100,21 +110,36 @@ function initLevel(level) {
 
     game.level = level;
 
-    while (asteroidsWave.length < game.level*2) {
+    while (asteroidsWave.length < game.level*1) {
         // create new asteroid
         var origin = {x: Math.random()*width, y:height*1/10};
 
         var num = Math.floor(Math.random() * cities.length);
         var target = cities[num];
         //var dest = {x:width/2 + (Math.random()-0.5)* width, y:height}; 
-        var dest = {x:target.x, y:height}; 
-        var asteroid = new Asteroid( origin, dest, conf.ASTEROID_SPEED);
+        var dest = {x:target.x, y:target.y}; 
+
+
+        var levelSpeed = conf.ASTEROID_SPEED * (1+game.level/10);
+
+        levelSpeed = levelSpeed + levelSpeed*(Math.random()-0.5)
+
+        if (levelSpeed > conf.ASTEROID_SPEED_MAX) levelSpeed = conf.ASTEROID_SPEED_MAX;
+
+        var asteroid = new Asteroid( origin, dest, levelSpeed);
 
         // add to asteroid wave
         asteroidsWave.push(asteroid);
 
-        if (asteroidsWave.length > 200) break;
+        // limit the asteroid wave
+        if (asteroidsWave.length > 100) break;
     }
+
+
+    // clear canvas
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+    ctx.fillRect(0,0,width,height);
+    ctx.stroke();    
 }
 
 
@@ -123,18 +148,29 @@ function initLevel(level) {
 
 function loop() {
 	if (game.status == GAME_RUNNING) 
-        step(60/1000);    // 1000
+        step(GAME_FPS);    // 1000
+
+    if (game.status == GAME_STOP) 
+        modalMenu.style.display = 'flex';
+
+
     draw(ctx);
     window.requestAnimationFrame(loop);
 }
+
+
+
+
 
 function step(dt) {
 
     game.dt = dt;
 
-    while (asteroidsWave.length>0) {
+    cadence += dt;
+    if ((asteroids.length == 0 || cadence > CADENCE_TIME*10/game.level) &&  asteroidsWave.length>0) {
         var asteroid = asteroidsWave.pop();
         asteroids.push(asteroid);
+        cadence = 0;
     }
     
 
@@ -180,12 +216,13 @@ function step(dt) {
                 if (asteroid.collide(city)) {
 
                     asteroid.live = 0;
-                    explosions.push(new Explosion(OTHER, {x:asteroid.x,y:asteroid.y}));
+                    //explosions.push(new Explosion(OTHER, {x:asteroid.x,y:asteroid.y}));
     
                     city.damage(100);
     
-                    if (city.live < 1)
+                    if (city.live < 1){
                         explosions.push(new Explosion(CITY, {x:city.x,y:city.y}));
+                    }
     
                 }
             } 
@@ -199,8 +236,22 @@ function step(dt) {
     // cities = cities.filter(city => city.live > 0);
 
 
-	if(cities.filter(city => city.live>0).length==0)
-        gameOver();    
+    // Game ove when no cities are alive
+	if(cities.filter(city => city instanceof Tower == false && city.live>0).length==0) {
+
+        var towers = cities.filter(city => city instanceof Tower && city.live > 0 );
+
+        towers.forEach(tower => {
+            explosions.push(new Explosion(CITY, {x:tower.x,y:tower.y}));
+            tower.live = 0;
+        });
+
+
+        setTimeout( function() {
+            gameOver();    
+        }, 800);
+
+    }
         
     if (asteroids.length == 0 && explosions.length == 0) {
         initLevel(game.level + 1);
@@ -255,7 +306,7 @@ function step(dt) {
 
                     //if (pos.y < limitTop && pos.y > limitBottom) continue;
 
-                    if (pos.y > limitTop && pos.y < limitBottom) {
+                    if (pos.y > targetArea.top && pos.y < targetArea.bottom) {
 
                         if (tower.isReady()) {
                             tower.shot();
@@ -291,16 +342,21 @@ function step(dt) {
 function draw(ctx) {
 
     // clear canvas
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     ctx.fillRect(0,0,width,height);
     ctx.stroke();
 
     ctx.setLineDash([]);
     ctx.lineWidth = 2;
 
+    ctx.fillStyle = 'rgba(120, 80, 20, 0.5)';
+    ctx.fillRect(0,height*9/10,width,5);
+    ctx.stroke();    
+
+
     if (game.mode == GAME_MODE_AUTO) {
-        ctx.fillStyle = '#030301';
-        ctx.fillRect(0,limitTop,width,limitBottom-limitTop);
+        ctx.fillStyle = 'rgba(2, 2, 2, 0.1)';
+        ctx.fillRect(0,targetArea.top,width,targetArea.bottom-targetArea.top);
         ctx.stroke();    
     }
 
@@ -309,7 +365,7 @@ function draw(ctx) {
     ctx.textAlign = 'center';
     ctx.font = '14px Arial';
     ctx.fillStyle = 'white';
-    ctx.fillText('DEMO v0.1', width - 60, 20);
+    ctx.fillText('DEMO v'+ game.version, width - 60, 20);
     ctx.stroke();
 
 
@@ -326,7 +382,8 @@ function draw(ctx) {
     explosions.forEach(explosion => { explosion.draw(ctx); });
 
     // draw focus
-    targetFocus.forEach(item => { item.draw(ctx); });
+    if (GAME_SHOW_FOCUS)
+        targetFocus.forEach(item => { item.draw(ctx); });
 
 
     scoreEl.innerHTML = score.points;
@@ -343,7 +400,7 @@ loop();
 
 
 function gameOver() {
-	game.status = GAME_STOP;
+	game.status = GAME_OVER;
 	scoreBigEl.innerHTML = score.points; // +' ('+ score.missiles +')';
 	modalEl.style.display = 'flex';
 }
@@ -383,6 +440,14 @@ autoBtn.addEventListener('click', () => {
     game.mode = (game.mode != GAME_MODE_MANUAL?GAME_MODE_MANUAL:GAME_MODE_AUTO);
 });
 
+pauseBtn.addEventListener('click', () => {
+    game.status = (game.status != GAME_RUNNING?GAME_RUNNING:GAME_STOP);
+});
+resumeBtn.addEventListener('click', () => {
+	modalMenu.style.display = 'none';    
+    game.status = (game.status != GAME_RUNNING?GAME_RUNNING:GAME_STOP);
+});
+
 // INPUT
 
 
@@ -418,9 +483,19 @@ window.addEventListener( 'keyup', onkeyup );
 function sortByDistance(tower, asteroids) {
 
     return asteroids.sort(function ( a, b ) {
-        if (getDist(a,tower) < getDist(b,tower) )
+
+        var A1 = getDist(a.target,tower);
+        var B1 = getDist(b.target,tower);
+
+        var A2 = getDist(a,tower);
+        var B2 = getDist(b,tower);
+
+        var A = A1 * 0.5 + A2 *0.5;
+        var B = B1 * 0.5 + B2 *0.5;
+
+        if ( A < B)
         return -1;
-     if (getDist(a,tower) > getDist(b,tower))
+     if (A > B)
        return 1;
      return 0;
     });
@@ -435,7 +510,7 @@ function sortByDistance(tower, asteroids) {
 
 
 function getAsteroidId(target) {
-    return target.targetX.toFixed(2) +'-'+ target.targetY.toFixed(2) +'-'+ target.angle.toFixed(2);    
+    return target.target.x.toFixed(2) +'-'+ target.target.y.toFixed(2) +'-'+ target.angle.toFixed(2);    
 }
 
 

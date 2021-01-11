@@ -7,6 +7,8 @@ class City {
 
         this.color = 'green';
         this.radius = 20;
+        this.width = 20;
+        this.heigth = 20;
 
 		this.live = City.LIVE;        
     }
@@ -20,7 +22,7 @@ class City {
         ctx.beginPath()
         ctx.strokeStyle = this.color;
         ctx.fillStyle = this.color;
-        ctx.rect(this.x - this.radius ,this.y, this.radius*2, this.radius );
+        ctx.rect(this.x - this.width ,this.y, this.width*2, this.heigth );
         ctx.fill();
         ctx.stroke();
 
@@ -28,7 +30,7 @@ class City {
             ctx.beginPath()
             ctx.strokeStyle = 'black';
             ctx.fillStyle = 'black';
-            ctx.arc(this.x,this.y-this.radius*0.3,this.radius*0.8,2*Math.PI,false);
+            ctx.arc(this.x,this.y,this.width*0.8,2*Math.PI,false);
             ctx.fill();
             ctx.stroke();
         }
@@ -52,17 +54,17 @@ class Tower extends City {
         this.y = pos.y - 20;
 
         this.color = 'blue';
-        this.radius = 20;
+        this.radius = 10;
     
-        this.load = Tower.MAX_LOAD/2;    
-        if (loadSpeed == null) loadSpeed = 50;
+        this.load = Tower.MAX_LOAD;    
+        if (loadSpeed == null) loadSpeed = 50; // RELOAD_TIME_MS
         this.loadSpeed = loadSpeed;
     }
 
     step(dt) {
         super.step(dt);
 
-        this.load += this.loadSpeed*dt;
+        this.load += 60000/this.loadSpeed*dt;
         if (this.load > Tower.MAX_LOAD)
             this.load = Tower.MAX_LOAD
         }    
@@ -74,7 +76,7 @@ class Tower extends City {
             ctx.beginPath()
             ctx.strokeStyle = this.color;
             ctx.fillStyle = 'black';
-            ctx.rect(this.x - this.radius ,this.y+1 - this.radius, this.radius*2, this.radius*2-2 );
+            ctx.rect(this.x - this.width ,this.y+1 - this.width, this.width*2, this.width*2-2 );
             ctx.fill();
             ctx.stroke();
 
@@ -82,10 +84,10 @@ class Tower extends City {
             var loadPercent = this.load/Tower.MAX_LOAD;
 
             var loadDim = {};
-            loadDim.x = this.x-1 - this.radius/2;
-            loadDim.y = this.y+1 + this.radius;
-            loadDim.width = this.radius;
-            loadDim.height = this.radius*2;
+            loadDim.x = this.x - this.width/2;
+            loadDim.y = this.y+1 + this.width;
+            loadDim.width = this.width;
+            loadDim.height = this.width*2;
 
             loadDim.height = loadPercent*loadDim.height;
             loadDim.y = loadDim.y - loadDim.height;
