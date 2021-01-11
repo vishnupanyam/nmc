@@ -84,10 +84,10 @@ class Tower extends City {
             var loadPercent = this.load/Tower.MAX_LOAD;
 
             var loadDim = {};
-            loadDim.x = this.x - this.width/2;
-            loadDim.y = this.y+1 + this.width;
-            loadDim.width = this.width;
-            loadDim.height = this.width*2;
+            loadDim.x = this.x - this.width/6;
+            loadDim.y = this.y + this.width;
+            loadDim.width = this.width/3;
+            loadDim.height = this.width*2-2;
 
             loadDim.height = loadPercent*loadDim.height;
             loadDim.y = loadDim.y - loadDim.height;
